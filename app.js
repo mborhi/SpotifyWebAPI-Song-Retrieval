@@ -7,10 +7,8 @@ import { stringify } from 'querystring';
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 // auth token
-const token = "BQARjADsEZiGRMnCZUz_1_SG9cQIWaStyzxUnc8DE2GLkpWWPxDyUd80SwIBlfcwGtZo3NB9uCG0iL4UdNziAzGD2Dx2eAWRptklnvRll2CKWcT-RqKCrcJb0YgqtpsXEWQBWBAtDMJ6cixd4p_FdgkF4PAiDuIOfiXLzGaj";
-
-// command line arg, only one should be supplied
-const category = process.argv.slice(2)[0];
+// const token = "BQARjADsEZiGRMnCZUz_1_SG9cQIWaStyzxUnc8DE2GLkpWWPxDyUd80SwIBlfcwGtZo3NB9uCG0iL4UdNziAzGD2Dx2eAWRptklnvRll2CKWcT-RqKCrcJb0YgqtpsXEWQBWBAtDMJ6cixd4p_FdgkF4PAiDuIOfiXLzGaj";
+const token = process.argv.slice(2)[0];
 
 // base spoitify url endpoint
 const baseURL = 'https://api.spotify.com/v1';
@@ -34,15 +32,6 @@ const baseURL = 'https://api.spotify.com/v1';
  *      previewURL: URL
  *   }
  */
-
-
-/**
- * 1. Get given catgeory from category name:
- *      getCategory(name: string): {href, icons, id, name}
- * 2. Search query based on category
- * 3. Get tracks
- */
-
 
 /**
  * Returns a list of trackData for every spotify_track in the given list of spotify_tracks. 
