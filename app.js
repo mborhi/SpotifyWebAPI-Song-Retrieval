@@ -6,9 +6,9 @@ import { stringify } from 'querystring';
 // env variables 
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
-// auth token
+
 // const token = "BQARjADsEZiGRMnCZUz_1_SG9cQIWaStyzxUnc8DE2GLkpWWPxDyUd80SwIBlfcwGtZo3NB9uCG0iL4UdNziAzGD2Dx2eAWRptklnvRll2CKWcT-RqKCrcJb0YgqtpsXEWQBWBAtDMJ6cixd4p_FdgkF4PAiDuIOfiXLzGaj";
-const token = process.argv.slice(2)[0];
+//const token = process.argv.slice(2)[0];
 
 // base spoitify url endpoint
 const baseURL = 'https://api.spotify.com/v1';
@@ -32,6 +32,32 @@ const baseURL = 'https://api.spotify.com/v1';
  *      previewURL: URL
  *   }
  */
+
+
+
+/**
+ * Retrieves an auth token for this app. Requires client_id, client_secret.
+ * @returns OAuth2 token
+ */
+const getAuthToken = async () => {
+    const url = 'https://accounts.spotify.com/api/token';
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type' : 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic ' + btoa(client_id + ':' + client_secret)
+        },
+        body: 'grant_type=client_credentials'
+    });
+    const data = await response.json();
+    try {
+        let token = await data.access_token;
+        return await token;
+    }
+    catch(error) {
+        console.error(error);
+    }
+}
 
 /**
  * Returns a list of trackData for every spotify_track in the given list of spotify_tracks. 
@@ -142,13 +168,13 @@ const searchCategory = async (category, limit=5) => {
  * Gets a list of the specified number of given category's playlists' tracks.
  * Uses Get Category's Playlist Spotify Web API call:
  * 
- * API reference https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-categories-playlists
+ * API reference    https://developer.spotify.com/documentation/web-api/reference/#/operations/get-a-categories-playlists
  * 
- * Endpoint	https://api.spotify.com/v1/browse/categories/{category_id}/playlists
+ * Endpoint	        https://api.spotify.com/v1/browse/categories/{category_id}/playlists
  * 
- * HTTP Method	GET
+ * HTTP Method	    GET
  * 
- * OAuth	Required
+ * OAuth	        Required
  * @param {string} categoryID           the spotify category_id
  * @param {string} [country='US']       the spotify country code
  * @param {number} [limit=2]            the number of results to return from API query
@@ -201,11 +227,11 @@ const getPlaylistsData = async (playlists) => {
  * 
  * API Reference	https://developer.spotify.com/documentation/web-api/reference/#/operations/get-playlist
  * 
- * Endpoint	https://api.spotify.com/v1/playlists/{playlist_id}
+ * Endpoint	        https://api.spotify.com/v1/playlists/{playlist_id}
  * 
- * HTTP Method	GET
+ * HTTP Method	    GET
  * 
- * OAuth	Required
+ * OAuth	        Required
  * @param {spotify_playlist} playlist   the playlist to get the tracks of
  * @param {string} [fields='tracks']    the type to return
  * @param {string} [market='US']        the market to return tracks from
@@ -269,6 +295,9 @@ const checkFetch = (response) => {
     }
     return response;
 }
+
+// auth token
+const token = await getAuthToken();
 
 // gets the first 50 available categories, chooses a random one, and prints out the data for that category's first playlist
 getCategories().then(categoryList => {

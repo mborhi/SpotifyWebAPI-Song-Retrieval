@@ -2,6 +2,6 @@
 
 Spotify Web API reference found [here](https://developer.spotify.com/documentation/web-api/reference/#/)
 
-Authentication token must be generated manually (requires spotify account). Can be generated using the 'Get Token' on this [page](https://developer.spotify.com/console/get-current-user/).
+Authentication token must be generated using a registered client_id and client_secret. This requires registration of the app.
 
-Run with: `node app.js [OAuth Token]`
+Run with: `node app.js`
