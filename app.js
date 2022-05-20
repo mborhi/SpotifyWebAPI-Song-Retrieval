@@ -8,12 +8,24 @@ const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 
 // const token = "BQARjADsEZiGRMnCZUz_1_SG9cQIWaStyzxUnc8DE2GLkpWWPxDyUd80SwIBlfcwGtZo3NB9uCG0iL4UdNziAzGD2Dx2eAWRptklnvRll2CKWcT-RqKCrcJb0YgqtpsXEWQBWBAtDMJ6cixd4p_FdgkF4PAiDuIOfiXLzGaj";
-//const token = process.argv.slice(2)[0];
+// const token = process.argv.slice(2)[0];
 
 // base spoitify url endpoint
 const baseURL = 'https://api.spotify.com/v1';
 
 // TODO: Testing with Postman(?)
+// TODO: Make function to filter list of tracks by specified audio features
+
+
+/**
+ * Filters the given list of tracks by the specified audio feature
+ * @param {spotify_track[]} tracks  the tracks to filter
+ * @param {string} audiotFeature    the audio_feature to filter by
+ * @returns {spotify_track[]}       a list of tracks sorted by the given audio feature
+ */
+const filterTracksByAudioFeature = async (tracks, audiotFeature) => {
+    // for every track in tracks, get the audio features
+}
 
 /**
  * Data Defintions 
@@ -32,7 +44,6 @@ const baseURL = 'https://api.spotify.com/v1';
  *      previewURL: URL
  *   }
  */
-
 
 
 /**
@@ -56,6 +67,37 @@ const getAuthToken = async () => {
     }
     catch(error) {
         console.error(error);
+    }
+}
+
+/**
+ * Returns a list of available genres.
+ * Uses Get Available Genre Seeds Spotify Web API call:
+ * 
+ * API Reference	Get Available Genre Seeds
+ * 
+ * Endpoint	        https://api.spotify.com/v1/recommendations/available-genre-seeds
+ * 
+ * HTTP Method	    GET
+ * 
+ * OAuth	        Required
+ * @returns {array} list of genres
+ */
+const getAvailableGenreSeeds = async () => {
+    const url = baseURL + '/recommendations/available-genre-seeds';
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+        }
+    });
+    try {
+        const data = checkFetch(await respose.json());
+        return await data.genres;
+    } catch(error) {
+        console.log(error);
+        return [];
     }
 }
 
@@ -117,7 +159,7 @@ const getCategories = async (country='US', locale='us_EN', limit=50) => {
     });
     try {
         // const data = await response.json();
-        const data = await checkFetch(await response.json());
+        const data = checkFetch(await response.json());
         const categoryList = await data.categories.items.map((item) => item.id);
         return categoryList;
     } catch (error) {
@@ -126,6 +168,7 @@ const getCategories = async (country='US', locale='us_EN', limit=50) => {
     }
 }
 
+// TODO: genre:[genre_id] and return tracks
 /**
  * Prints out the TrackData of the specified amount of tracks from the given search category.
  * Uses Search Spotify Web API Call:
@@ -143,7 +186,7 @@ const getCategories = async (country='US', locale='us_EN', limit=50) => {
 const searchCategory = async (category, limit=5) => {
     const query = {
         q: category,
-        type: 'track',
+        type: 'category',
         offset: 0,
         limit: limit
     };
@@ -261,6 +304,38 @@ const getPlayListTracks = async (playlist, fields='tracks', market='US') => {
         return listOfPlaylistTracks;
     } catch (error) {
         console.log('playlist has no tracks');
+        return [];
+    }
+}
+
+/**
+ * Returns the audio features of the specified track.
+ * Uses Get Tracks' Audio Features Spotify Web API call:
+ * 
+ * API Reference	Get Tracks' Audio Features
+ * 
+ * Endpoint	        https://api.spotify.com/v1/audio-features
+ * 
+ * HTTP Method	    GET
+ * 
+ * OAuth	        Required
+ * @param {string} trackID  the id of the track
+ * @returns {array}         the audio features of the given track
+ */
+const getTrackAudioFeatures = async (trackID) => {
+    const query = {
+        ids: trackID
+    };
+    const url = baseURL + '/audio-features';
+    const response = await fetch(url, {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+    });
+    try {
+        const data = checkFetch(await response.json());
+        return await data.audio_features;
+    } catch(error) {
+        console.log(error);
         return [];
     }
 }

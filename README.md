@@ -4,4 +4,6 @@ Spotify Web API reference found [here](https://developer.spotify.com/documentati
 
 Authentication token must be generated using a registered client_id and client_secret. This requires registration of the app.
 
+Install dependencies: `npm install`
+
 Run with: `node app.js`
