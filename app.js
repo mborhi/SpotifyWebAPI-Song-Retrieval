@@ -55,7 +55,7 @@ const getAuthToken = async () => {
     const response = await fetch(url, {
         method: 'POST',
         headers: {
-            'Content-Type' : 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded',
             'Authorization': 'Basic ' + btoa(client_id + ':' + client_secret)
         },
         body: 'grant_type=client_credentials'
@@ -65,7 +65,7 @@ const getAuthToken = async () => {
         let token = await data.access_token;
         return await token;
     }
-    catch(error) {
+    catch (error) {
         console.error(error);
     }
 }
@@ -93,9 +93,9 @@ const getAvailableGenreSeeds = async () => {
         }
     });
     try {
-        const data = checkFetch(await respose.json());
+        const data = checkFetch(await response.json());
         return await data.genres;
-    } catch(error) {
+    } catch (error) {
         console.log(error);
         return [];
     }
@@ -111,10 +111,10 @@ function getTrackDataList(tracks) {
     tracks.forEach((track) => {
         let trackPreviewURL = track.preview_url;
         if (trackPreviewURL !== null) {
-            trackDataList = [...trackDataList, {name: track.name, previewURL: trackPreviewURL}];
+            trackDataList = [...trackDataList, { name: track.name, previewURL: trackPreviewURL }];
         }
     });
-    return trackDataList ;
+    return trackDataList;
 }
 
 /**
@@ -142,7 +142,7 @@ function printTrackData(trackData) {
  * @param {number} [limit=50]       the number of categories for query to return
  * @returns {spotify_category[]}    a list of categories
  */
-const getCategories = async (country='US', locale='us_EN', limit=50) => {
+const getCategories = async (country = 'US', locale = 'us_EN', limit = 50) => {
     const queryData = {
         country: country,
         locale: locale,
@@ -153,7 +153,7 @@ const getCategories = async (country='US', locale='us_EN', limit=50) => {
     const response = await fetch(url, {
         method: 'GET',
         headers: {
-            'Content-Type' : 'application/json',
+            'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token
         }
     });
@@ -183,10 +183,10 @@ const getCategories = async (country='US', locale='us_EN', limit=50) => {
  * @param {spotify_category} category   the spotify category to search for
  * @param {number} limit                the number of results to include in return (defualt = 5)
  */
-const searchCategory = async (category, limit=5) => {
+const searchCategory = async (category, limit = 5) => {
     const query = {
         q: category,
-        type: 'category',
+        type: 'track',
         offset: 0,
         limit: limit
     };
@@ -197,15 +197,62 @@ const searchCategory = async (category, limit=5) => {
             "Content-Type": "application/json",
             "Authorization": "Bearer " + token
         }
-    })
-    const data = await response.json();
-    let items = await data.tracks.items;
-    let trackData = getTrackDataList(items);
-    trackData.forEach((track) => {
-        printTrackData(track);
     });
+    try {
+        const data = checkFetch(await response.json());
+        let items = await data.tracks.items;
+        return items;
+        // let trackData = getTrackDataList(items);
+        // trackData.forEach((track) => {
+        //     printTrackData(track);
+        // });
+    } catch (error) {
+        console.log('error:', error);
+    }
 }
 
+/**
+ * Prints out the TrackData of the specified amount of tracks from the given genre.
+ * Uses Search Spotify Web API Call:
+ * 
+ * API Reference	https://developer.spotify.com/documentation/web-api/reference/#/operations/search
+ * 
+ * Endpoint	        https://api.spotify.com/v1/search
+ * 
+ * HTTP Method	    GET
+ * 
+ * OAuth	        Required
+ * @param {genre_seed} genre   the spotify category to search for
+ * @param {number} limit       the number of results to include in return (defualt = 5)
+ */
+const searchGenre = async (genre, limit = 5) => {
+    const query = {
+        q: 'genre:' + genre,
+        type: 'track',
+        market: 'US',
+        offset: 0,
+        limit: limit
+    };
+    let url = baseURL + '/search?' + stringify(query);
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        }
+    });
+    try {
+        const data = checkFetch(await response.json());
+        let items = await data.tracks.items;
+        return items;
+        // let trackData = getTrackDataList(items);
+        // trackData.forEach((track) => {
+        //     printTrackData(track);
+        // });
+    } catch (error) {
+        console.log('error:', error);
+    }
+}
 
 /**
  * Gets a list of the specified number of given category's playlists' tracks.
@@ -224,7 +271,7 @@ const searchCategory = async (category, limit=5) => {
  * @param {number} [offset=0]           the offset of results
  * @returns {PlaylistNameAndTracks[]}   a list of PlaylistNameAndTracks
  */
-const getCategoryPlaylist = async (categoryID, country='US', limit=2, offset=0) => {
+const getCategoryPlaylist = async (categoryID, country = 'US', limit = 2, offset = 0) => {
     const query = {
         country: country,
         limit: limit,
@@ -280,13 +327,13 @@ const getPlaylistsData = async (playlists) => {
  * @param {string} [market='US']        the market to return tracks from
  * @returns {TrackData[]}               an array of the playlists' tracks data (name, previewURL)
  */
-const getPlayListTracks = async (playlist, fields='tracks', market='US') => {
+const getPlayListTracks = async (playlist, fields = 'tracks', market = 'US') => {
     const query = {
         fields: fields,
         market: market
     }
     const url = baseURL + '/playlists/' + playlist.id + '?' + stringify(query);
-    
+
     const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -299,6 +346,7 @@ const getPlayListTracks = async (playlist, fields='tracks', market='US') => {
         let playlistTracks = await data.tracks.items; // list of spotify_tracks
         // for every track in tracks, get the name of the track and the preview url
         let listOfPlaylistTracks = await playlistTracks.map((playlistTrack) => {
+            console.log('playlist track:', playlistTrack);
             return { name: playlistTrack.track.name, previewURL: playlistTrack.track.preview_url };
         });
         return listOfPlaylistTracks;
@@ -334,10 +382,23 @@ const getTrackAudioFeatures = async (trackID) => {
     try {
         const data = checkFetch(await response.json());
         return await data.audio_features;
-    } catch(error) {
+    } catch (error) {
         console.log(error);
         return [];
     }
+}
+
+/**
+ * Generates a list of tracks from the given genre
+ * @param {string} genre the Spoitfy genre seed track items to search for
+ * @returns a list of song names and preview_urls of the given genre
+ */
+const getGenreTracks = async (genre) => {
+    const genreItems = await searchGenre(genre);
+    const genreTracks = genreItems.map((item) => {
+        return { songName: item.name, previewURL: item.preview_url };
+    });
+    return genreTracks;
 }
 
 /**
@@ -375,11 +436,33 @@ const checkFetch = (response) => {
 const token = await getAuthToken();
 
 // gets the first 50 available categories, chooses a random one, and prints out the data for that category's first playlist
-getCategories().then(categoryList => {
-    let randIdx = Math.floor(Math.random() * categoryList.length);
-    console.log('selected category: ', categoryList[randIdx]);
-    // searchCategory(categoryList[randIdx], 10)
-    getCategoryPlaylist(categoryList[randIdx]).then(l => {
-        l.forEach((p) => printPlaylistNameAndTrack(p));
+// getCategories().then(categoryList => {
+//     let randIdx = Math.floor(Math.random() * categoryList.length);
+//     console.log('selected category: ', categoryList[randIdx]);
+//     // searchCategory(categoryList[randIdx], 10)
+//     getCategoryPlaylist(categoryList[randIdx]).then(l => {
+//         l.forEach((p) => printPlaylistNameAndTrack(p));
+//     });
+// });
+
+// getAvailableGenreSeeds().then(genres => {
+//     genres.forEach((genre) => {
+//         console.log(genre);
+//         searchCategory(genre).then(result => {
+//             console.log('end')
+//         });
+//     });
+// });
+
+getAvailableGenreSeeds().then(genres => {
+    genres.forEach((genre, i) => {
+        if (i < 10) {
+            console.log(genre);
+            getGenreTracks(genre).then(result => {
+                result.forEach((track) => {
+                    console.log(track);
+                });
+            });
+        }
     });
 });
