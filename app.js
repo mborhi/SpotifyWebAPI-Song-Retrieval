@@ -7,15 +7,12 @@ import { stringify } from 'querystring';
 const client_id = process.env.CLIENT_ID;
 const client_secret = process.env.CLIENT_SECRET;
 
-// const token = "BQARjADsEZiGRMnCZUz_1_SG9cQIWaStyzxUnc8DE2GLkpWWPxDyUd80SwIBlfcwGtZo3NB9uCG0iL4UdNziAzGD2Dx2eAWRptklnvRll2CKWcT-RqKCrcJb0YgqtpsXEWQBWBAtDMJ6cixd4p_FdgkF4PAiDuIOfiXLzGaj";
 // const token = process.argv.slice(2)[0];
 
 // base spoitify url endpoint
 const baseURL = 'https://api.spotify.com/v1';
 
-// TODO: Testing with Postman(?)
 // TODO: Make function to filter list of tracks by specified audio features
-
 
 /**
  * Filters the given list of tracks by the specified audio feature
@@ -225,7 +222,7 @@ const searchCategory = async (category, limit = 5) => {
  * @param {genre_seed} genre   the spotify category to search for
  * @param {number} limit       the number of results to include in return (defualt = 5)
  */
-const searchGenre = async (genre, limit = 5) => {
+const searchGenre = async (genre, limit = 2) => {
     const query = {
         q: 'genre:' + genre,
         type: 'track',
@@ -436,33 +433,33 @@ const checkFetch = (response) => {
 const token = await getAuthToken();
 
 // gets the first 50 available categories, chooses a random one, and prints out the data for that category's first playlist
-// getCategories().then(categoryList => {
-//     let randIdx = Math.floor(Math.random() * categoryList.length);
-//     console.log('selected category: ', categoryList[randIdx]);
-//     // searchCategory(categoryList[randIdx], 10)
-//     getCategoryPlaylist(categoryList[randIdx]).then(l => {
-//         l.forEach((p) => printPlaylistNameAndTrack(p));
-//     });
-// });
-
-// getAvailableGenreSeeds().then(genres => {
-//     genres.forEach((genre) => {
-//         console.log(genre);
-//         searchCategory(genre).then(result => {
-//             console.log('end')
-//         });
-//     });
-// });
-
-getAvailableGenreSeeds().then(genres => {
-    genres.forEach((genre, i) => {
-        if (i < 10) {
-            console.log(genre);
-            getGenreTracks(genre).then(result => {
-                result.forEach((track) => {
-                    console.log(track);
-                });
-            });
-        }
+getCategories().then(categoryList => {
+    let randIdx = Math.floor(Math.random() * categoryList.length);
+    console.log('selected category: ', categoryList[randIdx]);
+    // searchCategory(categoryList[randIdx], 10)
+    getCategoryPlaylist(categoryList[randIdx]).then(l => {
+        l.forEach((p) => printPlaylistNameAndTrack(p));
     });
+});
+
+
+const getListOfGenreSongs = async () => {
+    // get the genre seeds
+    let genres = await getAvailableGenreSeeds();
+    // for every genre seed, get the tracks
+    genres = genres.slice(0, 25);
+    let listOfGenreSongs = genres.map(async (genre) => {
+        // will return two genre tracks
+        let genreTracks = await getGenreTracks(genre);
+        return { name: genre, tracks: genreTracks };
+    });
+    // return this data
+    return await Promise.all(listOfGenreSongs);
+
+}
+
+getListOfGenreSongs().then(list => {
+    list.forEach((item) => {
+        console.log(item);
+    })
 });
